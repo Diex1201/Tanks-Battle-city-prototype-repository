@@ -1,0 +1,147 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TankHandler : MonoBehaviour
+{
+    public int HP = 2;
+    public float speed = 400f;
+    public Transform tank;
+    public Transform shootPoint;
+    public Rigidbody2D bullet;
+    public float bulletSpeed = 15f;
+    private Rigidbody2D body;
+    private Vector2 moveDirection;
+    private Vector3 rotation;
+    private int move;
+    private bool fire;
+
+    public enum PlayerOrPC {player, pc};
+    public PlayerOrPC controlType;
+    void Start()
+    {
+        body = GetComponent<Rigidbody2D>();
+
+        if(controlType == PlayerOrPC.pc)
+        {
+            move = Random.Range(0, 5);
+            fire = false;
+        }
+    }
+
+
+    void Update()
+    {
+        ControlType();
+        tank.localRotation = Quaternion.Euler(rotation);
+        CaseBehavior();
+        Shoot();
+    }
+
+    void FixedUpdate()
+    {
+        body.AddForce(moveDirection * speed);
+
+        if (Mathf.Abs(body.velocity.x) > speed / 100f)
+        {
+            body.velocity = new Vector2(Mathf.Sign(body.velocity.x) * speed / 100f, body.velocity.y);
+        }
+        if (Mathf.Abs(body.velocity.y) > speed / 100f)
+        {
+            body.velocity = new Vector2(body.velocity.x, Mathf.Sign(body.velocity.y) * speed / 100f);
+        }
+    }
+
+    void CaseBehavior()
+    {
+        switch (move)
+        {
+            case 1:
+                moveDirection = new Vector2(0, 1);
+                rotation = new Vector3(0, 0, 0);
+                break;
+
+            case 2:
+                moveDirection = new Vector2(0, -1);
+                rotation = new Vector3(0, 0, 180);
+                break;
+
+            case 3:
+                moveDirection = new Vector2(-1, 0);
+                rotation = new Vector3(0, 0, 90);
+                break;
+
+            case 4:
+                moveDirection = new Vector2(1, 0);
+                rotation = new Vector3(0, 0, -90);
+                break;
+
+            default:
+                moveDirection = new Vector2(0, 0);
+                break;
+        }
+    }
+
+    public void ControlType()
+    {
+        if(controlType == PlayerOrPC.player)
+        {
+            if (Input.GetKey(KeyCode.W))
+            {
+                move = 1;
+            }
+            else if (Input.GetKey(KeyCode.S))
+            {
+                move = 2;
+            }
+            else if (Input.GetKey(KeyCode.A))
+            {
+                move = 3;
+            }
+            else if (Input.GetKey(KeyCode.D))
+            {
+                move = 4;
+            }
+            else
+            {
+                moveDirection = new Vector2(0, 0);
+            }
+        }
+       else if(controlType == PlayerOrPC.pc)
+        {
+            InvokeRepeating("ChangeMove", 5, 5);
+            InvokeRepeating("NeedShoot", Random.Range(0, 3), Random.Range(1.5f, 4));
+        }
+    }
+
+    public void ChangeMove()
+    {
+        move = Random.Range(0, 5);
+    }
+
+    public void NeedShoot()
+    {
+        fire = true;
+    }
+
+    private void Shoot()
+    {
+        if(controlType == PlayerOrPC.pc)
+        {
+            if (fire)
+            {
+                fire = false;
+                Rigidbody2D bulletInstance = Instantiate(bullet, shootPoint.position, Quaternion.identity) as Rigidbody2D;
+                bulletInstance.velocity = shootPoint.TransformDirection(Vector2.up * bulletSpeed);
+            }
+        }
+        else if(controlType == PlayerOrPC.player)
+        {
+            if(Input.GetMouseButton(0))
+            {
+                Rigidbody2D bulletInstance = Instantiate(bullet, shootPoint.position, Quaternion.identity) as Rigidbody2D;
+                bulletInstance.velocity = shootPoint.TransformDirection(Vector2.up * bulletSpeed);
+            }
+        }
+    }
+}
