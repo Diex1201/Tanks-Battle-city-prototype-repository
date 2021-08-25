@@ -12,7 +12,7 @@
 *.opendb
 *.VC.db
 *.csproj
-
+.log
 ExportedObj/
 .gradle/
 .vs/
